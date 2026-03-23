@@ -11,5 +11,7 @@ Start here if you are new to the repository.
 | [DEVELOPMENT.md](DEVELOPMENT.md) | venv, pytest, ruff, `PYTHONPATH`, migrations, test layers (unit / fake-DB / HTTP / integration) |
 | [VERIFYING.md](VERIFYING.md) | Full local verification checklist: `scripts/verify_local.sh`, DB, services, E2E pipeline |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common failures (API keys, migrations, Kafka, empty signals) |
+| [../deploy/GITHUB_AND_RAILWAY_SETUP.md](../deploy/GITHUB_AND_RAILWAY_SETUP.md) | Public GitHub repo + Railway deploy (step by step) |
+| [../deploy/railway.md](../deploy/railway.md) | Railway checklist (Postgres, Docker, env vars, optional Netlify) |
 
 The root [README.md](../README.md) has quick setup, trading-calendar behavior, and links here.

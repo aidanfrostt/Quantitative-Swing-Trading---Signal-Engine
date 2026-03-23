@@ -1,0 +1,13 @@
+# Non-secret defaults; Kafka points at in-cluster Redpanda (see redpanda.yaml).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: signal-config
+data:
+  KAFKA_BOOTSTRAP_SERVERS: "redpanda:9092"
+  MIN_MARKET_CAP_USD: "300000000"
+  MIN_ADV_SHARES: "500000"
+  BENCHMARK_SYMBOL: "SPY"
+  VIX_SYMBOL: "I:VIX"
+  API_HOST: "0.0.0.0"
+  API_PORT: "8080"

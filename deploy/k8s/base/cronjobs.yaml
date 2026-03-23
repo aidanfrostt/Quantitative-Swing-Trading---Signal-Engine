@@ -1,0 +1,166 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: universe-cron
+spec:
+  schedule: "30 11 * * 1-5"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: universe
+              image: signal-universe-cron:latest
+              imagePullPolicy: IfNotPresent
+              envFrom:
+                - configMapRef:
+                    name: signal-config
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: signal-secrets
+                      key: database-url
+                - name: POLYGON_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: signal-secrets
+                      key: polygon-api-key
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: impact-job
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: impact
+              image: signal-impact-job:latest
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: signal-secrets
+                      key: database-url
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: source-scoring
+spec:
+  schedule: "30 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: score
+              image: signal-source-scoring:latest
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: signal-secrets
+                      key: database-url
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: technical-engine
+spec:
+  schedule: "0 1 * * 1-5"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: technical
+              image: signal-technical-engine:latest
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: signal-secrets
+                      key: database-url
+                - name: POLYGON_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: signal-secrets
+                      key: polygon-api-key
+                      optional: true
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: attribution-job
+spec:
+  schedule: "30 1 * * 1-5"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: attribution
+              image: signal-attribution-job:latest
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: signal-secrets
+                      key: database-url
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sector-sentiment-job
+spec:
+  schedule: "0 3 * * 1-5"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: sector-sentiment
+              image: signal-sector-sentiment-job:latest
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: signal-secrets
+                      key: database-url
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: fundamentals-ingest
+spec:
+  schedule: "45 12 * * 1-5"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: fundamentals
+              image: signal-fundamentals-ingest:latest
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: signal-secrets
+                      key: database-url
+                - name: POLYGON_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: signal-secrets
+                      key: polygon-api-key

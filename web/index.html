@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Signal generation — pipeline</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site">
+      <h1>Signal generation system</h1>
+      <p class="sub">Batch ingestion → PostgreSQL → request-time scoring</p>
+    </header>
+
+    <main>
+      <p class="disclaimer">
+        Signals are quantitative model outputs, not investment advice. Outcomes are not guaranteed. Short selling
+        requires broker borrow/locate; the API only labels position_intent.
+      </p>
+
+      <section class="block" id="architecture">
+        <h2>Architecture</h2>
+        <p>
+          Polygon supplies prices and fundamentals; Perigon supplies news. Jobs run on a schedule or manually, write
+          to PostgreSQL (Timescale for OHLCV), and optionally publish to Kafka. The signal API is a long-running HTTP
+          server: each request recomputes scores from the latest database state.
+        </p>
+      </section>
+
+      <section class="block" id="pipeline">
+        <h2>Ingestion order</h2>
+        <p style="margin-bottom: 0.75rem">Suggested first-time batch sequence (from services documentation):</p>
+        <ol class="pipeline">
+          <li data-step="01">
+            <span class="idx">01</span>
+            <div>
+              <div class="step-title">universe_cron</div>
+              <div class="step-body">
+                Builds symbols, universe snapshots, filtered universe; liquidity and market-cap filters; sector and
+                benchmark ETF fields from Polygon.
+              </div>
+            </div>
+          </li>
+          <li data-step="02">
+            <span class="idx">02</span>
+            <div>
+              <div class="step-title">price_ingest</div>
+              <div class="step-body">
+                Daily aggregates for universe symbols and benchmark ETFs (SPY, QQQ, sector ETFs); extends lookback for
+                beta and attribution.
+              </div>
+            </div>
+          </li>
+          <li data-step="03">
+            <span class="idx">03</span>
+            <div>
+              <div class="step-title">technical_engine</div>
+              <div class="step-body">RSI, MACD, Bollinger, VWAP on daily bars; regime snapshot from SPY and VIX.</div>
+            </div>
+          </li>
+          <li data-step="04">
+            <span class="idx">04</span>
+            <div>
+              <div class="step-title">news_ingest</div>
+              <div class="step-body">Perigon articles, dedupe, match tickers; requires symbols from the universe.</div>
+            </div>
+          </li>
+          <li data-step="05">
+            <span class="idx">05</span>
+            <div>
+              <div class="step-title">nlp_worker</div>
+              <div class="step-body">FinBERT sentiment for articles missing scores (ML extra).</div>
+            </div>
+          </li>
+          <li data-step="06">
+            <span class="idx">06</span>
+            <div>
+              <div class="step-title">fundamentals_ingest</div>
+              <div class="step-body">Polygon financials into fundamentals_snapshot and heuristic fundamental_score.</div>
+            </div>
+          </li>
+          <li data-step="07">
+            <span class="idx">07</span>
+            <div>
+              <div class="step-title">attribution_job</div>
+              <div class="step-body">
+                5d move vs SPY, rolling beta, sector ETF, peer percentile → attribution_snapshot (explanatory).
+              </div>
+            </div>
+          </li>
+          <li data-step="08">
+            <span class="idx">08</span>
+            <div>
+              <div class="step-title">sector_sentiment_job</div>
+              <div class="step-body">
+                Sector-level weighted news vs benchmark ETF returns → sector_sentiment_snapshot (after NLP and prices).
+              </div>
+            </div>
+          </li>
+          <li data-step="09">
+            <span class="idx">09</span>
+            <div>
+              <div class="step-title">signal_api</div>
+              <div class="step-body">
+                GET /v1/signals (keyed) or GET /public/v1/signals when enabled — reads latest rows, no per-request
+                training.
+              </div>
+            </div>
+          </li>
+        </ol>
+        <p style="font-size: 0.82rem; color: var(--muted); margin-top: 1rem">
+          Optional: impact_job and source_scoring refine publisher weights for sentiment aggregation.
+        </p>
+      </section>
+
+      <section class="block" id="request-path">
+        <h2>Request-time computation</h2>
+        <p>
+          Each call loads current technicals, aggregates 14d news sentiment (publisher-weighted), blends with optional
+          fundamentals, applies regime dampening to positive conviction, then classifies action and position intent.
+        </p>
+        <div class="blend-flow">
+technical_z_score ──┐
+news sentiment agg ─┼── blend_scores → apply_regime → classify_action_intent
+fundamentals (opt) ─┘
+        </div>
+      </section>
+
+      <section class="block" id="live">
+        <h2>Live snapshot</h2>
+        <p style="font-size: 0.85rem; color: var(--muted)">
+          Data from GET /public/v1/signals (same payload shape as the keyed API). Requires ENABLE_PUBLIC_SIGNAL_UI=true on
+          the server.
+        </p>
+        <div class="live">
+          <div class="live-header">
+            <span>signals</span>
+            <span class="state" data-live-state>loading…</span>
+          </div>
+          <div class="live-body" data-live-body>
+            <p class="live-error">Loading…</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/config.js"></script>
+    <script src="/main.js"></script>
+  </body>
+</html>

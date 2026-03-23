@@ -1,0 +1,2 @@
+-- Optional: drop raw 1m data older than 90 days (uncomment in production after validation)
+-- SELECT add_retention_policy('ohlcv', INTERVAL '90 days');

@@ -1,0 +1,12 @@
+# Build: docker build -f Dockerfile.service --build-arg SVC=signal_api -t signal-api:local .
+ARG SVC=signal_api
+FROM python:3.11-slim-bookworm
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app/src
+RUN pip install --no-cache-dir pip setuptools wheel
+COPY pyproject.toml README.md /app/
+COPY src /app/src
+RUN pip install --no-cache-dir -e /app
+COPY web /app/web
+COPY services/${SVC}/main.py /app/run.py
+CMD ["python", "/app/run.py"]

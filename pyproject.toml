@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "signal-generation"
+version = "0.1.0"
+description = "Quantitative swing trading signal generation platform"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "exchange-calendars>=4.5",
+    "httpx>=0.27",
+    "asyncpg>=0.29",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "aiokafka>=0.10",
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+ml = [
+    "transformers>=4.40",
+    "torch>=2.2",
+    "safetensors>=0.4",
+    "pyarrow>=15.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.3",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = [".", "src"]
+markers = [
+    "integration: requires RUN_INTEGRATION_TESTS=1 and DATABASE_URL (real PostgreSQL)",
+]

@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: signal-api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: signal-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: signal-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: signal-api
+  template:
+    metadata:
+      labels:
+        app: signal-api
+    spec:
+      containers:
+        - name: api
+          image: signal-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: signal-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: signal-secrets
+                  key: database-url
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: signal-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: SIGNAL_API_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: signal-secrets
+                  key: signal-api-keys
+            - name: POLYGON_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: signal-secrets
+                  key: polygon-api-key
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20

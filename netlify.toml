@@ -1,7 +1,8 @@
 [build]
-  publish = "web"
+  base = "demo"
+  command = "npm run build"
+  publish = "dist"
 
-# SPA: single index; API calls go to Railway — set API base in Netlify env and inject before deploy, or use a build script.
 [build.environment]
   NODE_VERSION = "20"
 

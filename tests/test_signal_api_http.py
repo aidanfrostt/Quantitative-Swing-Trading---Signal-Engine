@@ -62,6 +62,7 @@ def test_v1_signals_200_validates_payload(api_client: TestClient, signal_api_tes
     assert r.status_code == 200
     payload = SignalsPayload.model_validate(r.json())
     assert len(payload.signals) >= 1
+    assert payload.symbols_evaluated >= 1
     assert payload.market_context is not None
 
 

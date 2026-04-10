@@ -8,6 +8,21 @@ Many jobs call `exit_if_not_nyse_trading_day()` and **skip work** on weekends an
 
 Ensure `X-API-Key` matches one of the comma-separated keys in `SIGNAL_API_KEYS` (see `.env.example`).
 
+## Local: page loads but “Live snapshot” errors (503 / database)
+
+The API needs **PostgreSQL/TimescaleDB** on the host/port in `DATABASE_URL` (default **`localhost:5433`** from `docker-compose.yml`).
+
+1. **Docker Desktop** must be running.
+2. Start the DB: `docker compose up -d` (TimescaleDB only by default) or `docker compose up -d timescaledb`.
+3. Apply migrations: `export DATABASE_URL=postgresql://signals:signals@localhost:5433/signals` then `python scripts/init_db.py`.
+4. Or run everything in one step from the repo root: **`make dev`** or **`./scripts/dev.sh`** (starts Compose, migrations, then the API).
+
+If Postgres is down, `/public/v1/signals` returns **503** with a short message instead of an opaque 500.
+
+## Public routes return 404
+
+Set **`ENABLE_PUBLIC_SIGNAL_UI=true`** in `.env` (or the environment). `./scripts/dev.sh` defaults this to **`true`** for local use unless you set it to `false` in `.env`.
+
 ## Empty or sparse signals
 
 Trace upstream tables: `ohlcv`, `technical_features`, `news_sentiment`, `fundamentals_snapshot`, `attribution_snapshot`, `sector_sentiment_snapshot`. See [DATA_MODEL.md](DATA_MODEL.md).
@@ -19,11 +34,15 @@ Trace upstream tables: `ohlcv`, `technical_features`, `news_sentiment`, `fundame
 
 ## Kafka / Redpanda connection failures
 
-Start Redpanda: `docker compose up -d redpanda`. On the host, `KAFKA_BOOTSTRAP_SERVERS=localhost:19092` matches the compose port mapping.
+Redpanda is **optional** in Compose (profile **`kafka`**). To start it and create topics: set **`COMPOSE_PROFILES=kafka`** in `.env` (or export it), then `docker compose up -d`. On the host, `KAFKA_BOOTSTRAP_SERVERS=localhost:19092` matches the compose port mapping. The **signal API** does not require Kafka to start; batch jobs that publish bars/news may.
 
 ## Polygon / Perigon errors
 
 Set `POLYGON_API_KEY` and `PERIGON_API_KEY` in `.env`. Without keys, ingest jobs may fail or return no data.
+
+## Polygon `429 Too Many Requests` during `universe_cron`
+
+**Stocks Basic (free)** is **5 calls per minute** across Polygon stock endpoints. The shared `PolygonClient` enforces **minimum spacing** between calls—about **`60 / POLYGON_MAX_CALLS_PER_MINUTE`** seconds (default **5** → ~**12s** between requests)—so traffic is not sent in bursts that trigger **429**. If you still see **429**, wait and retry, or raise **`POLYGON_MAX_CALLS_PER_MINUTE`** / set **`0`** to disable only if your plan allows higher throughput.
 
 ## ML export: “No rows exported”
 

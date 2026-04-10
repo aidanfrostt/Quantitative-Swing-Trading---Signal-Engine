@@ -40,7 +40,7 @@ make dev
 
 (No Make? Run `bash scripts/dev.sh` — same behavior.)
 
-This installs the Python package if needed, copies `.env.example` → `.env` when `.env` is missing, starts **TimescaleDB** (port `5433`) and **Redpanda/Kafka** (`19092`), applies migrations, and runs the **Signal API** on **http://127.0.0.1:8080** (stop with `Ctrl+C`).
+This installs the Python package if needed, copies `.env.example` → `.env` when `.env` is missing, starts **TimescaleDB** (port `5433`), applies migrations, and runs the **Signal API** on **http://127.0.0.1:8080** (stop with `Ctrl+C`). **Redpanda/Kafka** is optional: add **`COMPOSE_PROFILES=kafka`** to `.env` if you run ingestion workers that publish to Kafka (see [`.env.example`](.env.example)).
 
 3. Edit `.env` with real `POLYGON_API_KEY`, `PERIGON_API_KEY`, and `SIGNAL_API_KEYS` so ingestion and authenticated API calls work.
 
@@ -73,7 +73,17 @@ python services/fundamentals_ingest/main.py
 
 See [docs/SERVICES.md](docs/SERVICES.md) for order and dependencies.
 
-NLP worker needs the ML extra: `pip install -e ".[ml]"` (or use `Dockerfile.nlp`).
+**Run the full pipeline once** (universe → prices → technicals → news → NLP → fundamentals → attribution → sector):
+
+```bash
+./scripts/run_full_pipeline.sh
+```
+
+If **Redpanda/Kafka is not running**, set `KAFKA_PUBLISH=false` in `.env` so `price_ingest` and `news_ingest` still write to PostgreSQL without a broker.
+
+NLP worker needs the ML extra: `pip install -e ".[ml]"` (or use `Dockerfile.nlp`). The script installs `[ml]` before `nlp_worker`.
+
+**Polygon rate limits:** **Stocks Basic** allows **5 API calls per minute**. The `PolygonClient` spaces requests by about **`60 / POLYGON_MAX_CALLS_PER_MINUTE`** seconds (default **5** → ~**12s** between calls) to avoid burst **429**s. Raise the cap for paid tiers or set **`0`** to disable client-side throttling. Full batch runs are slow on Basic; **HTTP 429** can still happen—wait and retry.
 
 **Offline move model (optional):** after migrations and `technical_features` / `ohlcv` history exist, run `python scripts/ml/export_training_dataset.py ...`, then `python scripts/ml/train_move_model.py ...` (see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)). Outputs are research-only; not investment advice.
 

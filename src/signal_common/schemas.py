@@ -117,6 +117,11 @@ class SignalsPayload(BaseModel):
         default_factory=list,
         description="Flat list: top names by |master_conviction| for backward compatibility.",
     )
+    symbols_evaluated: int = Field(
+        default=0,
+        ge=0,
+        description="Count of symbols with latest technical_features rows used to score this response.",
+    )
     disclaimer: str = Field(
         default="Signals are model outputs, not investment advice. Past performance does not guarantee future results.",
     )

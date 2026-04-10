@@ -11,7 +11,7 @@ make setup
 # or: ./scripts/setup_local.sh
 ```
 
-This installs `.[dev]`, runs `docker compose up -d`, waits for Postgres, and runs `scripts/init_db.py`.
+This installs `.[dev]`, runs `docker compose up -d` (TimescaleDB by default; add `COMPOSE_PROFILES=kafka` for Redpanda), waits for Postgres, and runs `scripts/init_db.py`.
 
 **Daily development** (DB + migrations + API in one terminal):
 

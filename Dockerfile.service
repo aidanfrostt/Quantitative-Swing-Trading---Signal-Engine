@@ -1,12 +1,16 @@
-# Build: docker build -f Dockerfile.service --build-arg SVC=signal_api -t signal-api:local .
-ARG SVC=signal_api
+# Build: docker build -f Dockerfile.service -t signal-api:local .
+# Other entrypoints: docker build --build-arg SVC=price_ingest -f Dockerfile.service -t price-ingest:local .
+#
+# Railway sometimes injects an empty SVC build-arg; ${SVC:-signal_api} in RUN coerces that to signal_api.
 FROM python:3.11-slim-bookworm
 WORKDIR /app
 ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app/src
+ARG SVC=signal_api
 RUN pip install --no-cache-dir pip setuptools wheel
 COPY pyproject.toml README.md /app/
 COPY src /app/src
 RUN pip install --no-cache-dir -e /app
 COPY web /app/web
-COPY services/${SVC}/main.py /app/run.py
+COPY services/ /app/services/
+RUN cp "/app/services/${SVC:-signal_api}/main.py" /app/run.py && rm -rf /app/services
 CMD ["python", "/app/run.py"]

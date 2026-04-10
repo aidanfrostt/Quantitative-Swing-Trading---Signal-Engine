@@ -49,6 +49,7 @@ async def test_build_signals_buy_when_conviction_high(dev_settings: Settings) ->
     async with pool.acquire() as conn:
         payload = await build_signals(conn, dev_settings, Horizon.d1, 50)
 
+    assert payload.symbols_evaluated == 1
     assert len(payload.signals) == 1
     rec = payload.signals[0]
     assert rec.action == SignalAction.BUY
@@ -160,3 +161,32 @@ async def test_build_signals_503_when_only_trading_days_and_not_session() -> Non
             with pytest.raises(HTTPException) as ei:
                 await build_signals(conn, s, Horizon.d1, 50)
             assert ei.value.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_build_signals_symbols_evaluated_zero_when_no_technicals(dev_settings: Settings) -> None:
+    pool = make_fake_pool_for_build_signals(
+        universe_version="2025-03-01",
+        main_rows=[],
+        ret_5d_symbol_rows=[],
+        sentiment_rows=[],
+        fundamentals_rows=[],
+        attribution_rows=[],
+        regime_row={
+            "buy_dampening_factor": 1.0,
+            "spy_below_ma200": False,
+            "vix_close": 15.0,
+        },
+        spy_id=10,
+        qqq_id=11,
+        ret_5d_ctx_rows=[
+            {"symbol_id": 10, "c1": 400.0, "c5": 400.0},
+            {"symbol_id": 11, "c1": 300.0, "c5": 300.0},
+        ],
+        sector_rows=[],
+    )
+    async with pool.acquire() as conn:
+        payload = await build_signals(conn, dev_settings, Horizon.d1, 50)
+    assert payload.symbols_evaluated == 0
+    assert len(payload.signals) == 0
+    assert len(payload.long_candidates) == 0

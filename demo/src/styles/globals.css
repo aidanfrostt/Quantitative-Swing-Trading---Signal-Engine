@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #090c1a;
+  --color-panel: #13182b;
+  --color-line: #233051;
+  --color-mint: #3ee6cf;
+  --color-rose: #ff5f8f;
+  --color-amber: #f8c15d;
+
+  --shadow-glow: 0 0 60px rgba(62, 230, 207, 0.2);
+}
+
+:root {
+  font-family: Inter, "IBM Plex Sans", system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #090c1a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.react-flow__controls button {
+  background: #13182b !important;
+  border-color: #233051 !important;
+  fill: #94a3b8 !important;
+}
+
+.react-flow__controls button:hover {
+  background: #1e2a47 !important;
+}
+
+.tv-lightweight-charts a[href*="tradingview"] {
+  display: none !important;
+}

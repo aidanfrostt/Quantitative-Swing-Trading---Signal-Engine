@@ -4,6 +4,8 @@ One **Docker** service serves the **FastAPI** JSON API, the **static UI** under 
 
 The repo root [`railway.json`](../railway.json) pins the **Dockerfile** to **`Dockerfile.service`** and sets the **health check** to **`/health`**. For a full walkthrough including GitHub, see [GITHUB_AND_RAILWAY_SETUP.md](GITHUB_AND_RAILWAY_SETUP.md).
 
+**Build arg `SVC`:** [`Dockerfile.service`](../Dockerfile.service) copies `services/<SVC>/main.py` using a shell step so an **empty** `SVC` (some platforms inject this) falls back to **`signal_api`**. For a non-API job on Railway, set **`SVC`** to that service name (e.g. `universe_cron`) in the service’s **Docker Build Args**.
+
 ## 1. Create a Railway project
 
 - **New project** → **Deploy from GitHub** (or empty project + connect repo).

@@ -59,6 +59,16 @@ async def load_all_tickers(client: PolygonClient) -> list[dict]:
     return out
 
 
+def dedupe_ticker_rows(rows: list[dict]) -> list[dict]:
+    """Polygon pages can repeat tickers; keep one row per parsed ticker (last wins)."""
+    by_ticker: dict[str, dict] = {}
+    for row in rows:
+        t = parse_polygon_ticker(row.get("ticker") or "")
+        if t:
+            by_ticker[t] = row
+    return list(by_ticker.values())
+
+
 async def fetch_adv_volumes(client: PolygonClient, trading_days: list[date]) -> dict[str, list[float]]:
     vols: dict[str, list[float]] = defaultdict(list)
     for d in trading_days:
@@ -77,7 +87,7 @@ async def fetch_adv_volumes(client: PolygonClient, trading_days: list[date]) -> 
 async def fetch_ticker_details_map(
     client: PolygonClient,
     tickers: list[str],
-    concurrency: int = 20,
+    concurrency: int = 1,
 ) -> dict[str, dict]:
     """Per-ticker Polygon v3 details: market_cap, sector_key, sector_label, benchmark_etf."""
     sem = asyncio.Semaphore(concurrency)
@@ -118,8 +128,8 @@ async def run() -> None:
     await run_migrations(pool)
     client = PolygonClient()
 
-    tickers = await load_all_tickers(client)
-    logger.info("Fetched %d ticker rows from Polygon", len(tickers))
+    tickers = dedupe_ticker_rows(await load_all_tickers(client))
+    logger.info("Fetched %d unique ticker rows from Polygon", len(tickers))
 
     as_of = date.today()
     trading_days: list[date] = []

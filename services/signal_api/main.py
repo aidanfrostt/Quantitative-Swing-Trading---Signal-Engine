@@ -77,8 +77,20 @@ _pool: asyncpg.Pool | None = None
 async def get_pool() -> asyncpg.Pool:
     global _pool
     if _pool is None:
-        _pool = await create_pool()
-        await run_migrations(_pool)
+        try:
+            _pool = await create_pool()
+            await run_migrations(_pool)
+        except ConnectionRefusedError as e:
+            logger.warning("PostgreSQL connection refused: %s", e)
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Database unavailable: cannot connect to PostgreSQL. "
+                    "Start TimescaleDB (e.g. `docker compose up -d timescaledb`), set DATABASE_URL "
+                    "to match docker-compose (default `postgresql://signals:signals@localhost:5433/signals`), "
+                    "then run `python scripts/init_db.py`."
+                ),
+            ) from e
     return _pool
 
 
@@ -310,6 +322,7 @@ async def build_signals(
         LIMIT 500
         """
     )
+    symbols_evaluated = len(rows)
 
     symbol_ids = [int(r["symbol_id"]) for r in rows]
     tickers = [r["ticker"] for r in rows]
@@ -458,6 +471,7 @@ async def build_signals(
         short_candidates=short_cand,
         watchlist=watch,
         signals=flat,
+        symbols_evaluated=symbols_evaluated,
         market_context=market_context,
         sector_context=sector_context,
     )

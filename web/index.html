@@ -135,13 +135,17 @@ fundamentals (opt) ─┘
       <section class="block" id="live">
         <h2>Live snapshot</h2>
         <p style="font-size: 0.85rem; color: var(--muted)">
-          Data from GET /public/v1/signals (same payload shape as the keyed API). Requires ENABLE_PUBLIC_SIGNAL_UI=true on
-          the server.
+          Data from GET /public/v1/signals — long/short/watchlist plus a ranked list and sector rows. The API only reads
+          the database; empty tables usually mean batch jobs have not populated <code>technical_features</code> yet.
+          Requires ENABLE_PUBLIC_SIGNAL_UI=true on the server.
         </p>
         <div class="live">
           <div class="live-header">
-            <span>signals</span>
-            <span class="state" data-live-state>loading…</span>
+            <span>live</span>
+            <div class="live-header-actions">
+              <button type="button" class="btn-refresh" data-refresh-live title="Reload data">Refresh</button>
+              <span class="state" data-live-state>loading…</span>
+            </div>
           </div>
           <div class="live-body" data-live-body>
             <p class="live-error">Loading…</p>

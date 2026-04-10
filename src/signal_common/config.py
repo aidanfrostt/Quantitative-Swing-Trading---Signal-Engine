@@ -19,9 +19,15 @@ class Settings(BaseSettings):
         description="Redpanda/Kafka brokers; compose maps 19092 on host (see docker-compose.yml)",
     )
     kafka_consumer_group: str = Field(default="signal-generation")
+    kafka_publish: bool = Field(
+        default=True,
+        description="If false, ingest jobs skip Kafka/Redpanda (DB inserts still run).",
+    )
 
     polygon_api_key: str = Field(default="")
     polygon_base_url: str = Field(default="https://api.polygon.io")
+    # Stocks Basic (free): 5 API calls / minute. Set higher on paid tiers, or 0 to disable client-side throttling.
+    polygon_max_calls_per_minute: int = Field(default=5)
 
     perigon_api_key: str = Field(default="", description="Bearer token for api.perigon.io")
     perigon_articles_url: str = Field(default="https://api.perigon.io/v1/articles/all")

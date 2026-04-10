@@ -10,8 +10,16 @@ services:
       - "5433:5432"
     volumes:
       - tsdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U signals -d signals"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
 
   redpanda:
+    profiles:
+      - kafka
     image: docker.redpanda.com/redpandadata/redpanda:v24.1.7
     command:
       - redpanda
@@ -33,9 +41,12 @@ services:
       - "18082:18082"
 
   redpanda-init:
+    profiles:
+      - kafka
     image: docker.redpanda.com/redpandadata/redpanda:v24.1.7
     depends_on:
-      - redpanda
+      redpanda:
+        condition: service_started
     entrypoint: ["/bin/bash", "-c"]
     command:
       - |

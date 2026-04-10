@@ -23,8 +23,25 @@ def json_deserializer(raw: bytes | memoryview) -> Any:
     return json.loads(raw.decode("utf-8"))
 
 
-async def make_producer(settings: Settings | None = None) -> AIOKafkaProducer:
+class _NoopKafkaProducer:
+    """Used when kafka_publish is false so ingest jobs can run without a broker."""
+
+    async def start(self) -> None:
+        return None
+
+    async def stop(self) -> None:
+        return None
+
+    async def send_and_wait(self, topic: str, value: Any = None) -> None:
+        return None
+
+
+async def make_producer(settings: Settings | None = None) -> AIOKafkaProducer | _NoopKafkaProducer:
     settings = settings or get_settings()
+    if not settings.kafka_publish:
+        p = _NoopKafkaProducer()
+        await p.start()
+        return p
     producer = AIOKafkaProducer(
         bootstrap_servers=settings.kafka_bootstrap_servers,
         value_serializer=json_serializer,

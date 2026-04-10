@@ -169,8 +169,80 @@ section.block li {
   gap: 1rem;
 }
 
+.live-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-refresh {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  border: var(--rule) solid var(--line);
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.btn-refresh:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
 .live-header .state {
   color: var(--muted);
+}
+
+.status-counts {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: var(--rule) solid var(--line);
+  color: var(--fg);
+}
+
+.live-muted {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0.35rem 0 0.75rem;
+  line-height: 1.4;
+}
+
+.live-warn {
+  font-size: 0.8rem;
+  border: var(--rule) solid var(--line);
+  padding: 0.5rem 0.65rem;
+  margin: 0.65rem 0;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.live-callout {
+  border: var(--rule) solid var(--line);
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0 1rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.live-callout code {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+}
+
+.live-checklist {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.live-checklist li {
+  margin-bottom: 0.35rem;
+}
+
+.live-disclaimer-foot {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: var(--rule) solid var(--line);
 }
 
 .live-body {
